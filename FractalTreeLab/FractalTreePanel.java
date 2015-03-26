@@ -1,29 +1,27 @@
 //********************************************************************
-//  KochPanel.java       Author: Lewis/Loftus/Cocking
+//  KhPanel.java       Author: Lewis/Loftus/Cocking
 //
-//  Represents a drawing surface on which to paint a Koch Snowflake.
+//  Represents a drawing surface on which to paint a Ko             Snowflake.
 //********************************************************************
 
 import java.awt.*;
 import javax.swing.JPanel;
 
-public class KochPanel extends JPanel
+public class FractalTreePanel extends JPanel
 {
    private final int PANEL_WIDTH = 800;
    private final int PANEL_HEIGHT = 800;
 
-   private final double SQ = Math.sqrt(3.0) / 6;
+   private final int TOPX = 400, TOPY = 500;
+   private final int BOTX = 400, BOTY = 700;
 
-   private final int TOPX = 400, TOPY = 20;
-   private final int LEFTX = 60, LEFTY = 600;
-   private final int RIGHTX = 700, RIGHTY = 600;
 
    private int current; //current order
 
    //-----------------------------------------------------------------
    //  Sets the initial fractal order to the value specified.
    //-----------------------------------------------------------------
-   public KochPanel (int currentOrder)
+   public FractalTreePanel (int currentOrder)
    {
       current = currentOrder;
       setBackground (Color.black);
@@ -36,31 +34,42 @@ public class KochPanel extends JPanel
    //  intermediate points are computed, and each line segment is
    //  drawn as a fractal.
    //-----------------------------------------------------------------
-   public void drawFractal (int order, int x1, int y1, int x5, int y5,
+   public void drawFractal (int order, int x1, int y1, int x2, int y2, double prevTheta,
+                            double theta,      
                             Graphics page)
    {
-      int deltaX, deltaY, x2, y2, x3, y3, x4, y4;
+      int lastDeltaX, lastDeltaY, leftDeltaX, leftDeltaY, rightDeltaX,
+            rightDeltaY, length, x3, y3, x4, y4;
+      double rightTheta, leftTheta;
 
       if (order == 1)
-         page.drawLine (x1, y1, x5, y5);
+         page.drawLine (x1, y1, x2, y2);
       else
       {
-         deltaX = x5 - x1;  // distance between end points
-         deltaY = y5 - y1;
+         lastDeltaX = x2 - x1;
+         lastDeltaY = y2 - y1;
+         length = (int)( Math.sqrt( lastDeltaX*lastDeltaX + lastDeltaY*lastDeltaY)*.70 );
+         
+         rightTheta = prevTheta + theta + Math.toRadians(10);
+         leftTheta = prevTheta- theta  + Math.toRadians(10);
 
-         x2 = x1 + deltaX / 3;  // one third
-         y2 = y1 + deltaY / 3;
+         rightDeltaX =(int) (length*Math.sin(rightTheta));
+         rightDeltaY = (int) (length*Math.cos(rightTheta));
+         
+         leftDeltaX =(int) (length*Math.sin(leftTheta));
+         leftDeltaY = (int) (length*Math.cos(leftTheta));
 
-         x3 = (int) ((x1+x5)/2 + SQ * (y1-y5));  // tip of projection
-         y3 = (int) ((y1+y5)/2 + SQ * (x5-x1));
+         x3 = x2 + rightDeltaX;
+         y3 = y2 - rightDeltaY;
+         
+         x4 = x2 + leftDeltaX;
+         y4 = y2 - leftDeltaY;
+         
+         page.drawLine (x2, y2, x3, y3);
+         page.drawLine (x2, y2 , x4, y4);
 
-         x4 = x1 + deltaX * 2/3;  // two thirds
-         y4 = y1 + deltaY * 2/3;
-
-         drawFractal (order-1, x1, y1, x2, y2, page);
-         drawFractal (order-1, x2, y2, x3, y3, page);
-         drawFractal (order-1, x3, y3, x4, y4, page);
-         drawFractal (order-1, x4, y4, x5, y5, page);
+         drawFractal (order-1, x2, y2, x3, y3, rightTheta, theta, page);
+         drawFractal (order-1, x2, y2, x4, y4, leftTheta, theta, page);
       }
    }
 
@@ -70,12 +79,10 @@ public class KochPanel extends JPanel
    public void paintComponent (Graphics page)
    {
       super.paintComponent (page);
-
       page.setColor (Color.green);
 
-      drawFractal (current, TOPX, TOPY, LEFTX, LEFTY, page);
-      drawFractal (current, LEFTX, LEFTY, RIGHTX, RIGHTY, page);
-      drawFractal (current, RIGHTX, RIGHTY, TOPX, TOPY, page);
+      drawFractal(current, TOPX, TOPY, BOTX, BOTY, Math.toRadians(0),
+      Math.toRadians(30.0), page);
    }
 
    //-----------------------------------------------------------------
